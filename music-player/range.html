@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Style Progress Bar</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .music-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #ccc;
+            height: 10px;
+            position: relative;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .progress {
+            background: #1db954;
+            height: 100%;
+            width: 0;
+        }
+
+        .slider {
+            position: absolute;
+            top: -5px;
+            width: 10px;
+            height: 20px;
+            background: #1db954;
+            border-radius: 50%;
+            display: none;
+            cursor: pointer;
+        }
+
+        .progress-container:hover .slider {
+            display: block;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="music-player">
+        <audio id="audio" src="your-audio-file.mp3"></audio>
+        <div class="progress-container" id="progress-container">
+            <div class="progress" id="progress"></div>
+            <div class="slider" id="slider"></div>
+        </div>
+        <button id="play-btn">Play</button>
+    </div>
+    <script>
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('play-btn');
+        const progressContainer = document.getElementById('progress-container');
+        const progress = document.getElementById('progress');
+        const slider = document.getElementById('slider');
+
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playBtn.textContent = 'Pause';
+            } else {
+                audio.pause();
+                playBtn.textContent = 'Play';
+            }
+        });
+
+        audio.addEventListener('timeupdate', updateProgress);
+        progressContainer.addEventListener('click', setProgress);
+        progressContainer.addEventListener('mousemove', moveSlider);
+        progressContainer.addEventListener('mousedown', dragStart);
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('mousemove', dragMove);
+
+        function updateProgress() {
+            const { duration, currentTime } = audio;
+            const percent = (currentTime / duration) * 100;
+            progress.style.width = `${percent}%`;
+            slider.style.left = `calc(${percent}% - 5px)`;
+        }
+
+        function setProgress(e) {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+
+            audio.currentTime = (clickX / width) * duration;
+        }
+
+        function moveSlider(e) {
+            const width = progressContainer.clientWidth;
+            const offsetX = e.offsetX;
+            slider.style.left = `calc(${(offsetX / width) * 100}% - 5px)`;
+        }
+
+        let dragging = false;
+
+        function dragStart(e) {
+            dragging = true;
+            setProgress(e);
+        }
+
+        function dragEnd() {
+            dragging = false;
+        }
+
+        function dragMove(e) {
+            if (dragging) {
+                const width = progressContainer.clientWidth;
+                const offsetX = e.pageX - progressContainer.offsetLeft;
+                const duration = audio.duration;
+
+                if (offsetX >= 0 && offsetX <= width) {
+                    audio.currentTime = (offsetX / width) * duration;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
